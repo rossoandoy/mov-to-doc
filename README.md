@@ -1,8 +1,10 @@
-# mov-to-pdf
+# mov-to-doc
 
 画面操作の録画（mov / mp4 など）から、**操作マニュアル（Markdown）**・**画面キャプチャ**・**処理フロー図（Mermaid → PNG）**を作り、**ユーザーが選んだ派生形式**（PDF / Word / HTML / EPUB / Confluence 等）へ出力するための **エージェント向け手順（Skill）とテンプレート**をまとめたリポジトリです。**正本は常に Markdown + `images/`** で、PDF は派生の一つです。
 
-**公式リポジトリ:** [https://github.com/rossoandoy/mov-to-pdf](https://github.com/rossoandoy/mov-to-pdf)
+**公式リポジトリ:** [https://github.com/rossoandoy/mov-to-doc](https://github.com/rossoandoy/mov-to-doc)
+
+（旧名 **mov-to-pdf** からリネーム。旧 URL は GitHub がリダイレクトします。）
 
 ---
 
@@ -124,9 +126,9 @@ flowchart TB
 ### 1. Cursor（推奨：ターミナル連携がしやすい）
 
 1. 本リポジトリを clone するか、[SKILL.md](SKILL.md) を取得する。
-2. Cursor の Agent Skills 用ディレクトリに配置する（例: `~/.cursor/skills/video-to-manual-pdf/SKILL.md`）。プロジェクト直下の `.cursor/rules` に要約を置く方法でもよい。
+2. Cursor の Agent Skills 用ディレクトリに **`SKILL.md` と `reference.md`** を置く（例: `mkdir -p ~/.cursor/skills/mov-to-doc && cp SKILL.md reference.md ~/.cursor/skills/mov-to-doc/`）。旧名 **`video-to-manual-pdf`** フォルダを使っていた場合は削除し、**`mov-to-doc`** に差し替える。プロジェクト直下の `.cursor/rules` に要約を置く方法でもよい。
 3. 作業用フォルダ（例: `manual/`）に [templates/](templates/) をコピーし、`npm install` 済みにしておく。
-4. チャットで「`mov-to-pdf` の SKILL に従って、`○○.mov` からマニュアルを作り、**出力は Markdown と PDF**（例）」のように **派生形式**を指定して依頼する。
+4. チャットで「`mov-to-doc` の SKILL に従って、`○○.mov` からマニュアルを作り、**出力は Markdown と PDF**（例）」のように **派生形式**を指定して依頼する。
 
 **活用のコツ:** 動画パスと成果物の出力先（フォルダ）を最初のメッセージで明示すると迷いが減ります。
 
@@ -134,7 +136,7 @@ flowchart TB
 
 ### 2. Claude Code / Claude Desktop
 
-1. リポジトリを clone するか、`SKILL.md` をプロジェクトにコピーする（例: `docs/skills/mov-to-pdf/SKILL.md`）。
+1. リポジトリを clone するか、`SKILL.md` をプロジェクトにコピーする（例: `docs/skills/mov-to-doc/SKILL.md`）。
 2. Anthropic 公表の **プロジェクト設定（Skills / CLAUDE.md 等）** に従い、**Skills** や **CLAUDE.md** に「録画マニュアル作成は `docs/skills/.../SKILL.md` に従う」と一文入れておくと毎回の説明が省けます。
 3. frontmatter（YAML）は、Claude Code の Skill 形式に合わせて **名前や description だけ調整**してよい。
 
@@ -214,6 +216,28 @@ npm run build
 
 ---
 
+## リネーム・同期（`mov-to-pdf` → `mov-to-doc`）
+
+クローン済みの環境では、次を **手元のターミナル**で実行してください（GitHub 上でリポジトリ名を **`mov-to-doc`** に変更したあと）。
+
+```bash
+cd manual/mov-to-doc
+git remote set-url origin https://github.com/rossoandoy/mov-to-doc.git
+git pull
+# 未コミットの変更がある場合
+git add SKILL.md README.md templates/build-pdf.mjs
+git commit -m "chore: rename to mov-to-doc (skill name, README, remote URL)"
+git push origin main
+```
+
+Cursor のスキルへ反映:
+
+```bash
+python3 manual/mov-to-doc/sync_skill_home.py
+# または: mkdir -p ~/.cursor/skills/mov-to-doc && cp manual/mov-to-doc/SKILL.md manual/mov-to-doc/reference.md ~/.cursor/skills/mov-to-doc/
+rm -rf ~/.cursor/skills/video-to-manual-pdf
+```
+
 ## ライセンス
 
 利用条件はリポジトリ利用者の方針に従ってください。未指定の場合は、利用前に作者へ確認することを推奨します。
@@ -222,4 +246,4 @@ npm run build
 
 ## 参照
 
-- リポジトリ: [https://github.com/rossoandoy/mov-to-pdf](https://github.com/rossoandoy/mov-to-pdf)
+- リポジトリ: [https://github.com/rossoandoy/mov-to-doc](https://github.com/rossoandoy/mov-to-doc)

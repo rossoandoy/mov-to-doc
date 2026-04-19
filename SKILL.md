@@ -1,5 +1,5 @@
 ---
-name: video-to-manual-pdf
+name: mov-to-doc
 description: >-
   Converts large system screen-recording videos (mov/mp4) into a user-facing
   operation manual: ffmpeg frames, time-ordered screenshot analysis, Markdown
@@ -8,9 +8,10 @@ description: >-
   DOCX/HTML/EPUB (Pandoc), slides (Marp / Pandoc), wiki (Confluence via MCP when
   available), and more—see reference.md. Enforces capture quality (no spinners
   or skeletons). After draft MD, asks the user which formats to produce; user
-  edits MD first, then regenerates derivatives. Triggers: screen recordings,
-  operation_manual.pdf, 画面録画, マニュアル自動生成, DOCX, Word, Confluence,
-  出力形式, 派生出力, PDF品質, キャプチャ品質.
+  edits MD first, then regenerates derivatives. Triggers: mov-to-doc, mov-to-pdf,
+  video-to-manual-pdf, screen recordings, operation_manual.pdf, 画面録画,
+  マニュアル自動生成, DOCX, Word, Confluence, 出力形式, 派生出力, PDF品質,
+  キャプチャ品質.
 ---
 
 # 動画からマニュアル生成（エージェント手順）

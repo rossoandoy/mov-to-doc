@@ -47,7 +47,7 @@ if (existsSync(pdfPath)) {
     console.error("例: MANUAL_PDF_STRICT_OVERWRITE=1 node build-pdf.mjs --force");
     process.exit(1);
   }
-  console.warn("[mov-to-pdf] 既存の PDF を上書きします:", pdfPath);
+  console.warn("[mov-to-doc] 既存の PDF を上書きします:", pdfPath);
 }
 
 const safeHtmlStem = basename(mdFile, ".md").replace(/[^a-zA-Z0-9._-]/g, "_") || "manual";

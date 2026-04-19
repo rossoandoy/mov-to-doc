@@ -4,15 +4,13 @@
 
 **公式リポジトリ:** [https://github.com/rossoandoy/mov-to-doc](https://github.com/rossoandoy/mov-to-doc)
 
-（旧名 **mov-to-pdf** からリネーム。旧 URL は GitHub がリダイレクトします。）
-
 ---
 
 ## このリポジトリの位置づけ
 
 | 要素 | 説明 |
 |------|------|
-| **Skill（[SKILL.md](SKILL.md)）** | AI や人間が従う **手順書**（Markdown）。Step A〜D（抽出〜本文〜図）、**Step E で派生出力をユーザーに確認**、Step F で **PDF（任意）**。**キャプチャ品質（Step A'）**と品質チェックあり。ベンダー専用の実行ファイルは含まない。 |
+| **Skill（[SKILL.md](SKILL.md)）** | AI や人間が従う **手順書**（Markdown）。Step A〜D（抽出〜本文〜図）、**Step E で派生出力をユーザーに確認**、Step F で **PDF（任意）**。**キャプチャ品質（Step A'）**と品質チェックあり。**1 回の指示で複数動画が指定されても、動画ごとに最適化（テンプレ一括禁止・品質優先）**。ベンダー専用の実行ファイルは含まない。 |
 | **テンプレート（[templates/](templates/)）** | 実プロジェクトの作業フォルダに **コピーして使う** ビルド用ファイル群。`build-pdf.mjs`・`package.json`・Mermaid ひな型など（**PDF 派生**用）。 |
 | **リファレンス（[reference.md](reference.md)）** | ffmpeg / Pandoc / 派生出力の一覧・Confluence チェックリスト・PDF コマンド早見。 |
 
@@ -126,7 +124,7 @@ flowchart TB
 ### 1. Cursor（推奨：ターミナル連携がしやすい）
 
 1. 本リポジトリを clone するか、[SKILL.md](SKILL.md) を取得する。
-2. Cursor の Agent Skills 用ディレクトリに **`SKILL.md` と `reference.md`** を置く（例: `mkdir -p ~/.cursor/skills/mov-to-doc && cp SKILL.md reference.md ~/.cursor/skills/mov-to-doc/`）。旧名 **`video-to-manual-pdf`** フォルダを使っていた場合は削除し、**`mov-to-doc`** に差し替える。プロジェクト直下の `.cursor/rules` に要約を置く方法でもよい。
+2. Cursor の Agent Skills 用ディレクトリに **`SKILL.md` と `reference.md`** を置く（例: `mkdir -p ~/.cursor/skills/mov-to-doc && cp SKILL.md reference.md ~/.cursor/skills/mov-to-doc/`）。プロジェクト直下の `.cursor/rules` に要約を置く方法でもよい。
 3. 作業用フォルダ（例: `manual/`）に [templates/](templates/) をコピーし、`npm install` 済みにしておく。
 4. チャットで「`mov-to-doc` の SKILL に従って、`○○.mov` からマニュアルを作り、**出力は Markdown と PDF**（例）」のように **派生形式**を指定して依頼する。
 
@@ -215,28 +213,6 @@ npm run build
 - サンプル画像・本文に **個人情報や社内秘密が含まれていないか**
 
 ---
-
-## リネーム・同期（`mov-to-pdf` → `mov-to-doc`）
-
-クローン済みの環境では、次を **手元のターミナル**で実行してください（GitHub 上でリポジトリ名を **`mov-to-doc`** に変更したあと）。
-
-```bash
-cd manual/mov-to-doc
-git remote set-url origin https://github.com/rossoandoy/mov-to-doc.git
-git pull
-# 未コミットの変更がある場合
-git add SKILL.md README.md templates/build-pdf.mjs
-git commit -m "chore: rename to mov-to-doc (skill name, README, remote URL)"
-git push origin main
-```
-
-Cursor のスキルへ反映:
-
-```bash
-python3 manual/mov-to-doc/sync_skill_home.py
-# または: mkdir -p ~/.cursor/skills/mov-to-doc && cp manual/mov-to-doc/SKILL.md manual/mov-to-doc/reference.md ~/.cursor/skills/mov-to-doc/
-rm -rf ~/.cursor/skills/video-to-manual-pdf
-```
 
 ## ライセンス
 

@@ -4,6 +4,31 @@
 
 **公式リポジトリ:** [https://github.com/rossoandoy/mov-to-doc](https://github.com/rossoandoy/mov-to-doc)
 
+**実運用例（推奨スタック）:** [manabie-tomas-mypage-manual](https://manabie-tomas-mypage-manual.rossoando.workers.dev/) — mov-to-doc の HTML 出力 + Cloudflare Workers（Static Assets + R2 動画）で公開。
+
+---
+
+## 推奨: HTML + Cloudflare Workers
+
+画面録画マニュアルを **業務ユーザーに届ける** なら、**HTML（Step G）→ `site/` → Cloudflare Workers（Step H）** が第一選択肢です。PDF や Confluence より先に検討する価値があります。
+
+| 利点 | 内容 |
+|------|------|
+| **Chrome 不要** | `build-html.mjs` だけで Web 品質の UI（目次・手順カード・画像拡大・UAT バッジ） |
+| **低コスト公開** | Workers Static Assets + R2 無料枠で UAT 規模は実質 0 円 |
+| **大容量動画** | 25MB 超の参照録画は R2 + Worker `/videos/*` で HTML5 再生 |
+| **Markdown 正本** | `.md` を編集 → `npm run build:web` → `wrangler deploy` で即反映 |
+| **現場 UX** | タブレット・教室 PC から URL 一つで参照、操作録画も同ページ内 |
+
+```bash
+# 典型フロー（manual リポジトリ）
+cd manuals/<slug> && npm run build:web
+node scripts/upload-video-r2.mjs   # 参照動画がある場合
+npx wrangler deploy
+```
+
+詳細は [SKILL.md Step G〜H](SKILL.md) と [reference.md](reference.md) の Cloudflare 節。
+
 ---
 
 ## このリポジトリの位置づけ
@@ -90,8 +115,8 @@ flowchart TB
 ```
 
 - **HTML パイプライン（推奨）:** `operation_manual.md` → `index.html` → `site/manuals/<slug>/`（[templates/build-html.mjs](templates/build-html.mjs)）。
+- **Cloudflare 公開（推奨）:** `site/` を Workers Static Assets、参照動画を R2 で配信（Step G + H）。実例: [manabie-tomas-mypage-manual](https://manabie-tomas-mypage-manual.rossoando.workers.dev/)。
 - **PDF パイプライン（オプション）:** `operation_manual.md` → 一時 HTML → `operation_manual.pdf`（[templates/build-pdf.mjs](templates/build-pdf.mjs)）。
-- **Cloudflare 公開:** `site/` を Workers Static Assets でデプロイ（[reference.md](reference.md) Step H）。
 - **その他:** [reference.md](reference.md) の Pandoc 例・Confluence チェックリストを参照。
 - **複数マニュアル:** 入出力ファイル名を引数で変える、または `package.json` に用途別 `build:*` を定義する（上書き方針は後述）。
 

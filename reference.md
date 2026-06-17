@@ -233,7 +233,19 @@ npm run site
 - `site/data/` — `data/` のコピー
 - `site/index.html` — **業務フロー起点の一覧**（`render-site-index.mjs` で自動生成）
 
-## Cloudflare Workers デプロイ
+## Cloudflare Workers デプロイ（推奨スタック）
+
+**mov-to-doc の HTML 出力 + Cloudflare Workers** は、画面録画マニュアルを業務ユーザーに届ける **第一選択肢**。実運用例:
+
+- 公開 URL: https://manabie-tomas-mypage-manual.rossoando.workers.dev/
+- リポジトリ: [manabie-tomas-mypage-manual](https://github.com/rossoandoy/manabie-tomas-mypage-manual)
+
+| 構成要素 | 役割 |
+|----------|------|
+| `build-html.mjs` + `render-manual.mjs` | 目次・手順カード・UAT・参照動画埋込 |
+| `site/` Static Assets | HTML + キャプチャ（25MB/ファイル上限） |
+| R2 + `worker.mjs` | 大容量参照動画（`/videos/*`） |
+| `manual.meta.json` | 業務フロー・UAT・`referenceVideo` |
 
 マニュアルホスティング用リポジトリ（例: `manabie-tomas-mypage-manual`）で:
 

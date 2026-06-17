@@ -186,13 +186,30 @@ PDF が **不要**ならこの Step をスキップする。
 HTML が **不要**ならこの Step をスキップする。**業務ユーザー向け Web マニュアル**の第一派生として推奨。
 
 1. 作業ディレクトリに `mov-to-doc init` でテンプレートを展開する（または `templates/` をコピー）。
-2. `npm install` のあと HTML を生成する。
+2. **（任意・推奨）** マニュアルメタ `manual.meta.json` を同じディレクトリに置く。業務フロー概要・UAT 対応・分岐 tip を HTML に反映する。
+3. **（マニュアルリポジトリ全体）** リポジトリルートに `data/business-flow.json`（7 フェーズ）と `data/uat-cases.json`（UAT 一覧）を置く。一覧ページ生成に使用。
+4. `npm install` のあと HTML を生成する。
    - **CLI（グローバル）**: `mov-to-doc build html operation_manual.md index.html`
    - **作業ディレクトリ内**: `npm run html` → `operation_manual.md` → **`index.html`**
    - **別名**: `node build-html.mjs <入力.md> <出力.html>`
-3. 生成 HTML の特徴: レスポンシブ、目次サイドバー、手順カード、画像クリック拡大、Noto Sans JP、Manabie 系アクセントカラー（`#2954c2`）。
-4. **`site/` へ反映**（Workers 公開前）: `npm run site` または `mov-to-doc build site [manual-dir] [site-dir] [slug]`
-5. 上書きポリシー: 環境変数 **`MANUAL_HTML_STRICT_OVERWRITE=1`** で既存 HTML 上書きを禁止。`--force` で上書き。
+5. 生成 HTML の特徴:
+   - **詳細ページ**: レスポンシブ、目次サイドバー、**業務フロー概要ストリップ**（`flowSummary`）、**分岐 tip**（Email 未入力時等）、**UAT バッジ**（手順・サイドバー）、手順カード、画像クリック拡大、Noto Sans JP、Manabie 系アクセントカラー（`#2954c2`）。
+   - **一覧ページ**（`prepare-site.mjs`）: 7 フェーズの業務フローストリップ、フェーズフィルタ、マニュアルカード（UAT チップ付き）、UAT 早見表（折りたたみ）。
+6. **`site/` へ反映**（Workers 公開前）: `npm run site` または `mov-to-doc build site [manual-dir] [site-dir] [slug]` — `data/` も `site/data/` にコピーされ、**一覧 `site/index.html` を自動再生成**する。
+7. 上書きポリシー: 環境変数 **`MANUAL_HTML_STRICT_OVERWRITE=1`** で既存 HTML 上書きを禁止。`--force` で上書き。
+
+### `manual.meta.json` の例
+
+```json
+{
+  "slug": "mypage-20260618",
+  "flowPhases": ["enrollment", "contract", "timetable"],
+  "flowRange": { "from": "面談カルテ入力", "to": "授業カレンダー配置" },
+  "flowSummary": ["面談カルテ入力（タブレット）", "…"],
+  "branchTips": [{ "afterStep": 8, "title": "Email が未入力の場合", "body": "ステップ9〜10を実施してから…" }],
+  "uatMapping": [{ "step": 1, "ids": ["EKT-01"], "note": "カルテ作成" }]
+}
+```
 
 **正本は Markdown のまま** — HTML は派生。ユーザーが `.md` を編集したら `npm run html` で再生成する。
 
@@ -260,8 +277,9 @@ HTML + `images/` を **インターネット公開**する場合（例: `manabie
 | [cli.mjs](cli.mjs) | グローバル CLI（`init` / `skill install` / `build html\|pdf\|site`） |
 | [templates/package.json](templates/package.json) | `diagram` / `html` / `pdf` / `site` / `build:web` |
 | [templates/build-html.mjs](templates/build-html.mjs) | `operation_manual.md` → Web HTML |
-| [templates/prepare-site.mjs](templates/prepare-site.mjs) | `site/` への配置（Workers Static Assets 用） |
-| [templates/lib/render-manual.mjs](templates/lib/render-manual.mjs) | Markdown → HTML（Web / 印刷共通） |
+| [templates/prepare-site.mjs](templates/prepare-site.mjs) | `site/` への配置（Workers Static Assets 用）・一覧再生成 |
+| [templates/lib/render-manual.mjs](templates/lib/render-manual.mjs) | Markdown → HTML（Web / 印刷共通・UAT・フロー概要） |
+| [templates/lib/render-site-index.mjs](templates/lib/render-site-index.mjs) | 業務フロー起点の一覧ページ HTML |
 | [templates/build-pdf.mjs](templates/build-pdf.mjs) | `operation_manual.md` → PDF |
 | [templates/diagrams/process_flow.mmd](templates/diagrams/process_flow.mmd) | フロー図のひな型 |
 | [reference.md](reference.md) | ffmpeg 例・派生出力の詳細・Cloudflare デプロイ |

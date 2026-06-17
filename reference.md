@@ -200,7 +200,26 @@ npm run html
 # または: mov-to-doc build html operation_manual.md index.html
 ```
 
-生成物: `index.html`（目次・手順カード・画像拡大付き）
+生成物: `index.html`（目次・**業務フロー概要**・**UAT バッジ**・分岐 tip・手順カード・画像拡大付き）
+
+### `manual.meta.json`（任意・推奨）
+
+マニュアルディレクトリに置く JSON。`build-html.mjs` が読み込み、詳細 HTML に反映する。
+
+| キー | 用途 |
+|------|------|
+| `flowPhases` | 業務フェーズ ID（`business-flow.json` の `id` と一致） |
+| `flowRange` | 一覧カード用 `{ from, to }` |
+| `flowSummary` | 詳細ページ上部の 5〜6 ノード概要ストリップ |
+| `branchTips` | 分岐 callout（例: Email 未入力時） |
+| `uatMapping` | 手順番号 ↔ UAT ID の対応 |
+
+### マニュアルリポジトリの `data/`
+
+| ファイル | 用途 |
+|----------|------|
+| `data/business-flow.json` | 7 フェーズ定義（一覧のフローストリップ） |
+| `data/uat-cases.json` | UAT テストケース一覧（Excel から `scripts/import-uat-xlsx.mjs` で生成可） |
 
 ## site/ 配置（Cloudflare Workers 用）
 
@@ -208,6 +227,10 @@ npm run html
 npm run site
 # または: mov-to-doc build site . ../site my-topic-slug
 ```
+
+- `site/manuals/<slug>/` — 詳細 HTML + images
+- `site/data/` — `data/` のコピー
+- `site/index.html` — **業務フロー起点の一覧**（`render-site-index.mjs` で自動生成）
 
 ## Cloudflare Workers デプロイ
 

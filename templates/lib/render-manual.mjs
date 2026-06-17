@@ -103,6 +103,10 @@ body { margin: 0; font-family: var(--font); font-size: 15px; line-height: 1.65; 
 .branch-tip strong { display: block; margin-bottom: 4px; color: #8a6116; }
 .step-card img, .main img { max-width: 100%; height: auto; display: block; margin: 12px 0; border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); cursor: zoom-in; }
 .main img:hover { border-color: var(--brand-border); }
+.reference-video { margin: 1.25rem 0 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); }
+.reference-video h2 { margin: 0 0 8px; font-size: 1.05rem; border: none; padding: 0; color: var(--brand); }
+.reference-video p { margin: 0 0 12px; font-size: 0.875rem; color: var(--text-muted); }
+.reference-video video { width: 100%; max-height: 480px; border-radius: var(--radius); background: #000; }
 dialog.lightbox { border: none; padding: 0; background: transparent; max-width: 95vw; max-height: 95vh; }
 dialog.lightbox::backdrop { background: rgba(0,0,0,.75); }
 dialog.lightbox img { max-width: 95vw; max-height: 90vh; display: block; border-radius: var(--radius); }
@@ -251,6 +255,18 @@ function addHeadingIds(html, headings) {
   });
 }
 
+function injectReferenceVideo(html, meta) {
+  if (!meta?.referenceVideo?.url) return html;
+  const { url, title = "操作録画", duration = "" } = meta.referenceVideo;
+  const durationNote = duration ? `（${escapeHtml(duration)}）` : "";
+  const block = `<section class="reference-video" aria-label="参照動画">
+<h2>参照動画</h2>
+<p>${escapeHtml(title)}${durationNote} — 画面操作の全体像を確認できます。</p>
+<video controls preload="metadata" playsinline src="${escapeHtml(url)}"></video>
+</section>`;
+  return html.replace(/(<h2[^>]*id="前提条件"[^>]*>)/, `${block}$1`);
+}
+
 function buildHeaderMeta(meta) {
   if (!meta?.flowRange) return "";
   const range = `${escapeHtml(meta.flowRange.from)} → ${escapeHtml(meta.flowRange.to)}`;
@@ -278,6 +294,7 @@ export async function renderManualHtml(md, options = {}) {
   const headings = extractHeadings(md);
   let contentHtml = addHeadingIds(bodyHtml, headings);
   contentHtml = injectFlowOverview(contentHtml, meta);
+  contentHtml = injectReferenceVideo(contentHtml, meta);
   contentHtml = wrapStepCards(contentHtml);
   contentHtml = injectBranchTips(contentHtml, meta);
   contentHtml = injectUatBadges(contentHtml, meta);

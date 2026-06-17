@@ -213,6 +213,7 @@ npm run html
 | `flowSummary` | 詳細ページ上部の 5〜6 ノード概要ストリップ |
 | `branchTips` | 分岐 callout（例: Email 未入力時） |
 | `uatMapping` | 手順番号 ↔ UAT ID の対応 |
+| `referenceVideo` | 参照動画 `{ url, title?, duration? }`。HTML の「前提条件」直前に `<video>` セクションを埋込。大容量は R2 + Worker `/videos/*` 配信 |
 
 ### マニュアルリポジトリの `data/`
 
@@ -237,18 +238,35 @@ npm run site
 マニュアルホスティング用リポジトリ（例: `manabie-tomas-mypage-manual`）で:
 
 ```jsonc
-// wrangler.jsonc
+// wrangler.jsonc（Static Assets + R2 動画）
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "manabie-tomas-mypage-manual",
+  "main": "worker.mjs",
   "compatibility_date": "2026-06-01",
   "assets": {
     "directory": "./site",
+    "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page"
-  }
+  },
+  "r2_buckets": [
+    { "binding": "VIDEOS", "bucket_name": "manabie-tomas-mypage-manual-videos" }
+  ]
 }
 ```
+
+`worker.mjs` は `/videos/*` を R2、`/` 以下を Static Assets から返す。
+
+参照動画アップロード:
+
+```bash
+ffmpeg -i "source/videos/recording.mov" -c:v libx264 -crf 26 -preset medium \
+  -vf "scale=1280:-2" -c:a aac -b:a 128k -movflags +faststart source/videos/<slug>.mp4
+node scripts/upload-video-r2.mjs source/videos/<slug>.mp4
+```
+
+`manual.meta.json` の `referenceVideo.url` に `/videos/<slug>.mp4` を設定する。
 
 ```bash
 npm install wrangler --save-dev

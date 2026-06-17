@@ -12,7 +12,7 @@ description: >-
   After draft MD, asks the user which formats to produce; user edits MD first,
   then regenerates derivatives. Triggers: mov-to-doc, mov-to-pdf,
   video-to-manual-pdf, screen recordings, operation_manual.pdf, 画面録画,
-  マニュアル自動生成, DOCX, Word, Confluence, 出力形式, 派生出力, PDF品質,
+  マニュアル自動生成, HTML, Web公開, Cloudflare Workers, DOCX, Word, Confluence, 出力形式, 派生出力, PDF品質,
   キャプチャ品質, 複数動画, 一括動画, テンプレート禁止, 手順の品質.
 ---
 
@@ -145,9 +145,11 @@ description: >-
 ### よく選ばれる順（目安）
 
 1. **Markdown のみ** — Git 管理・エディタで継続編集。派生は不要。
-2. **PDF** — 配布・印刷（Step F）。
-3. **DOCX（Word）** — 校正・コメント。Pandoc（[reference.md](reference.md)）。
-4. **Confluence** — Atlassian MCP または REST。**ページ作成・画像添付**のツールスキーマを読んでから実行。**スペースキー・親ページ**はユーザー確認。
+2. **HTML（Web）** — 業務ユーザー向けブラウザ閲覧（Step G）。**Chrome 不要**。
+3. **PDF** — 配布・印刷（Step F）。
+4. **DOCX（Word）** — 校正・コメント。Pandoc（[reference.md](reference.md)）。
+5. **Confluence** — Atlassian MCP または REST。**ページ作成・画像添付**のツールスキーマを読んでから実行。**スペースキー・親ページ**はユーザー確認。
+6. **Cloudflare Workers 公開** — HTML を `site/` に配置してデプロイ（Step H）。
 
 ### 派生出力の短縮表（詳細は reference.md）
 
@@ -157,7 +159,7 @@ description: >-
 | 印刷・固定レイアウト | PDF | Chrome + puppeteer（Step F）、または Pandoc | 高（テンプレート時） |
 | Office | DOCX、ODT | Pandoc | 高（Pandoc 導入時） |
 | スライド | PPTX、Marp | Pandoc（簡易）／Marp／Word 経由 | 低〜中（レイアウト期待は下げる） |
-| Web | 単一 HTML、静的サイト | Pandoc、MkDocs 等 | 中（SG は別プロジェクト） |
+| Web | 単一 HTML、静的サイト | **build-html.mjs**（Step G）、Pandoc、MkDocs 等 | 高（テンプレート時） |
 | Wiki・クラウド | Confluence、Notion、Google ドキュメント、Teams | MCP、API、手動貼り付け | 低〜中 |
 | 電子書籍 | EPUB | Pandoc | 中 |
 
@@ -178,6 +180,48 @@ PDF が **不要**ならこの Step をスキップする。
 4. 成果物の PDF パスをユーザーに返す。
 
 **注意**: `md-to-pdf` 等のみに依存すると Chromium のダウンロードに時間がかかることがある。**既存 Chrome + puppeteer-core**（テンプレート方式）をデフォルトとする。
+
+## Step G — HTML 出力（Web 閲覧用・Chrome 不要）
+
+HTML が **不要**ならこの Step をスキップする。**業務ユーザー向け Web マニュアル**の第一派生として推奨。
+
+1. 作業ディレクトリに `mov-to-doc init` でテンプレートを展開する（または `templates/` をコピー）。
+2. `npm install` のあと HTML を生成する。
+   - **CLI（グローバル）**: `mov-to-doc build html operation_manual.md index.html`
+   - **作業ディレクトリ内**: `npm run html` → `operation_manual.md` → **`index.html`**
+   - **別名**: `node build-html.mjs <入力.md> <出力.html>`
+3. 生成 HTML の特徴: レスポンシブ、目次サイドバー、手順カード、画像クリック拡大、Noto Sans JP、Manabie 系アクセントカラー（`#2954c2`）。
+4. **`site/` へ反映**（Workers 公開前）: `npm run site` または `mov-to-doc build site [manual-dir] [site-dir] [slug]`
+5. 上書きポリシー: 環境変数 **`MANUAL_HTML_STRICT_OVERWRITE=1`** で既存 HTML 上書きを禁止。`--force` で上書き。
+
+**正本は Markdown のまま** — HTML は派生。ユーザーが `.md` を編集したら `npm run html` で再生成する。
+
+## Step H — Cloudflare Workers へのデプロイ
+
+HTML + `images/` を **インターネット公開**する場合（例: `manabie-tomas-mypage-manual` リポジトリ）。
+
+1. マニュアルリポジトリに `wrangler.jsonc` を置き、`assets.directory` を `./site` に設定する（[reference.md](reference.md) 参照）。
+2. Step G で `site/manuals/<slug>/` に HTML と images を配置済みであること。
+3. デプロイ（**wrangler CLI**。Cloudflare MCP に deploy ツールは無い）:
+
+   ```bash
+   npm install wrangler --save-dev
+   npx wrangler login    # 初回のみ
+   npx wrangler deploy
+   ```
+
+4. **MCP による検証**（デプロイ後）:
+   - `search_cloudflare_documentation` — Static Assets 設定の確認
+   - `workers_list` → `workers_get_worker` — Worker の存在確認
+5. 公開 URL（例: `https://<worker-name>.<account>.workers.dev`）を README に記載する。
+6. **機密情報**: 公開前にキャプチャ・本文の個人情報をレビューする。後から **Cloudflare Access** で認証を追加可能。
+
+### 2 リポジトリモデル
+
+| リポジトリ | 役割 |
+|-----------|------|
+| **mov-to-doc** | ツール本体（CLI、Skill、テンプレート） |
+| **各 manual リポジトリ**（例: manabie-tomas-mypage-manual） | 動画（Git LFS）、Markdown、HTML、公開用 `site/` |
 
 ### 他の AI / エディタでも使えるか
 
@@ -213,9 +257,13 @@ PDF が **不要**ならこの Step をスキップする。
 
 | パス | 内容 |
 |------|------|
-| [templates/package.json](templates/package.json) | `diagram` / `pdf` / `build` |
+| [cli.mjs](cli.mjs) | グローバル CLI（`init` / `skill install` / `build html\|pdf\|site`） |
+| [templates/package.json](templates/package.json) | `diagram` / `html` / `pdf` / `site` / `build:web` |
+| [templates/build-html.mjs](templates/build-html.mjs) | `operation_manual.md` → Web HTML |
+| [templates/prepare-site.mjs](templates/prepare-site.mjs) | `site/` への配置（Workers Static Assets 用） |
+| [templates/lib/render-manual.mjs](templates/lib/render-manual.mjs) | Markdown → HTML（Web / 印刷共通） |
 | [templates/build-pdf.mjs](templates/build-pdf.mjs) | `operation_manual.md` → PDF |
 | [templates/diagrams/process_flow.mmd](templates/diagrams/process_flow.mmd) | フロー図のひな型 |
-| [reference.md](reference.md) | ffmpeg 例・派生出力の詳細・チェックリスト |
+| [reference.md](reference.md) | ffmpeg 例・派生出力の詳細・Cloudflare デプロイ |
 
 新規案件では `templates/` をプロジェクトの `manual/` にコピーし、動画・本文に合わせて編集する。

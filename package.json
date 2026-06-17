@@ -1,0 +1,26 @@
+{
+  "name": "mov-to-doc",
+  "version": "2.0.0",
+  "description": "Convert screen recordings to operation manuals (Markdown, HTML, PDF) and deploy to Cloudflare Workers",
+  "type": "module",
+  "bin": {
+    "mov-to-doc": "./cli.mjs"
+  },
+  "files": [
+    "cli.mjs",
+    "SKILL.md",
+    "reference.md",
+    "templates/"
+  ],
+  "keywords": [
+    "manual",
+    "screen-recording",
+    "markdown",
+    "html",
+    "pdf"
+  ],
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18"
+  }
+}

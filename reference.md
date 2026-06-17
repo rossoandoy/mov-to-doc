@@ -191,3 +191,64 @@ npm run pdf
 複数マニュアルがある場合は **`operation_manual.pdf` を上書きしない**よう、`node build-pdf.mjs 別件.md 別件.pdf` のように **出力ファイル名を変える**（プロジェクトの `package.json` に用途別 `pdf:*` / `build:*` を足すのが安全）。
 
 Chrome が見つからない場合は環境変数 `CHROME_PATH` に実行ファイルのフルパスを設定する。
+
+## HTML（Web 向け・推奨）
+
+```bash
+npm install
+npm run html
+# または: mov-to-doc build html operation_manual.md index.html
+```
+
+生成物: `index.html`（目次・手順カード・画像拡大付き）
+
+## site/ 配置（Cloudflare Workers 用）
+
+```bash
+npm run site
+# または: mov-to-doc build site . ../site my-topic-slug
+```
+
+## Cloudflare Workers デプロイ
+
+マニュアルホスティング用リポジトリ（例: `manabie-tomas-mypage-manual`）で:
+
+```jsonc
+// wrangler.jsonc
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "manabie-tomas-mypage-manual",
+  "compatibility_date": "2026-06-01",
+  "assets": {
+    "directory": "./site",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}
+```
+
+```bash
+npm install wrangler --save-dev
+npx wrangler login
+npx wrangler deploy
+```
+
+### Cloudflare MCP 検証（デプロイ後）
+
+1. `search_cloudflare_documentation` — Static Assets の設定確認
+2. `workers_list` — アカウント内 Worker 一覧
+3. `workers_get_worker` — 対象 Worker の存在・状態確認
+
+**注意**: MCP には `wrangler deploy` 相当のツールは無い。デプロイは CLI で行う。
+
+## グローバル CLI
+
+```bash
+npm install -g github:rossoandoy/mov-to-doc
+# または clone 後: npm link
+
+mov-to-doc init ./manuals/my-topic
+mov-to-doc skill install
+mov-to-doc build html
+mov-to-doc build site . ./site my-topic
+```

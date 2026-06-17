@@ -1,10 +1,13 @@
 {
-  "name": "operation-manual-pdf",
+  "name": "operation-manual-build",
   "private": true,
   "type": "module",
   "scripts": {
     "diagram": "mmdc -i diagrams/process_flow.mmd -o images/process_flow.png -w 1400 -b white",
+    "html": "node build-html.mjs",
     "pdf": "node build-pdf.mjs",
+    "site": "node prepare-site.mjs",
+    "build:web": "npm run diagram && npm run html && npm run site",
     "build": "npm run diagram && npm run pdf"
   },
   "devDependencies": {

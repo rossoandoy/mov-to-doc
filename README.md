@@ -1,6 +1,6 @@
 # mov-to-doc
 
-画面操作の録画（mov / mp4 など）から、**操作マニュアル（Markdown）**・**画面キャプチャ**・**処理フロー図（Mermaid → PNG）**を作り、**ユーザーが選んだ派生形式**（PDF / Word / HTML / EPUB / Confluence 等）へ出力するための **エージェント向け手順（Skill）とテンプレート**をまとめたリポジトリです。**正本は常に Markdown + `images/`** で、PDF は派生の一つです。
+画面操作の録画（mov / mp4 など）から、**操作マニュアル（Markdown）**・**画面キャプチャ**・**処理フロー図（Mermaid → PNG）**を作り、**ユーザーが選んだ派生形式**（**HTML** / PDF / Word / EPUB / Confluence 等）へ出力するための **CLI・エージェント向け手順（Skill）・テンプレート**をまとめたリポジトリです。**正本は常に Markdown + `images/`** で、**HTML は Web 閲覧用の第一派生**、PDF は印刷用派生の一つです。
 
 **公式リポジトリ:** [https://github.com/rossoandoy/mov-to-doc](https://github.com/rossoandoy/mov-to-doc)
 
@@ -10,9 +10,10 @@
 
 | 要素 | 説明 |
 |------|------|
-| **Skill（[SKILL.md](SKILL.md)）** | AI や人間が従う **手順書**（Markdown）。Step A〜D（抽出〜本文〜図）、**Step E で派生出力をユーザーに確認**、Step F で **PDF（任意）**。**キャプチャ品質（Step A'）**と品質チェックあり。**1 回の指示で複数動画が指定されても、動画ごとに最適化（テンプレ一括禁止・品質優先）**。ベンダー専用の実行ファイルは含まない。 |
-| **テンプレート（[templates/](templates/)）** | 実プロジェクトの作業フォルダに **コピーして使う** ビルド用ファイル群。`build-pdf.mjs`・`package.json`・Mermaid ひな型など（**PDF 派生**用）。 |
-| **リファレンス（[reference.md](reference.md)）** | ffmpeg / Pandoc / 派生出力の一覧・Confluence チェックリスト・PDF コマンド早見。 |
+| **CLI（[cli.mjs](cli.mjs)）** | `npm install -g` でグローバル利用。**init** / **build html\|pdf\|site** / **skill install** |
+| **Skill（[SKILL.md](SKILL.md)）** | AI や人間が従う **手順書**（Markdown）。Step A〜D（抽出〜本文〜図）、**Step E で派生出力をユーザーに確認**、**Step G で HTML**、Step F で **PDF（任意）**、**Step H で Cloudflare Workers デプロイ**。**キャプチャ品質（Step A'）**と品質チェックあり。**1 回の指示で複数動画が指定されても、動画ごとに最適化（テンプレ一括禁止・品質優先）**。 |
+| **テンプレート（[templates/](templates/)）** | 実プロジェクトの作業フォルダに **コピーして使う** ビルド用ファイル群。`build-html.mjs`・`build-pdf.mjs`・`prepare-site.mjs`・`package.json`・Mermaid ひな型など。 |
+| **リファレンス（[reference.md](reference.md)）** | ffmpeg / Pandoc / 派生出力の一覧・Cloudflare デプロイ・PDF コマンド早見。 |
 
 「Skill」は各 AI 製品の **Skills ディレクトリに置けるドキュメント**としても、**単なるプロジェクト内 Markdown** としても利用できる。製品ごとに frontmatter（YAML）の書式だけ合わせればよい。
 
@@ -46,8 +47,9 @@
 | 区分 | 技術 | 役割 |
 |------|------|------|
 | 動画処理 | **ffmpeg** | 可変フレームレートで JPG 等へ書き出し、解像度を `scale` で抑制。 |
-| マークダウン | **marked** | `build-pdf.mjs` が `.md` を **HTML 断片**に変換。 |
-| PDF 生成 | **puppeteer-core** + **Chrome** | 一時 HTML を開き **`page.pdf()`** で A4 PDF 出力（埋め込み画像は相対パスで解決）。 |
+| マークダウン | **marked** | `build-html.mjs` / `build-pdf.mjs` が `.md` を **HTML** に変換。 |
+| **HTML 生成** | **build-html.mjs** + **render-manual.mjs** | 業務ユーザー向け Web HTML（目次・手順カード・画像拡大）。**Chrome 不要**。 |
+| PDF 生成 | **puppeteer-core** + **Chrome** | 印刷用 HTML を **`page.pdf()`** で A4 PDF 出力。 |
 | 図 | **@mermaid-js/mermaid-cli**（`mmdc`） | Mermaid ソースを **PNG にレンダリング**（多くの PDF パイプラインでは Mermaid のコードブロックだけでは図にならないため）。 |
 | 派生（任意） | **Pandoc** | Markdown から **DOCX / HTML / EPUB** 等（環境にインストールが必要）。 |
 | Wiki（任意） | **Atlassian MCP** 等 | **Confluence** へのページ作成・添付は MCP のツール定義に従う。 |
@@ -79,14 +81,17 @@ flowchart TB
     MD --> ask[出力形式の確認]
   end
   subgraph derivatives["派生の例"]
+    ask --> html[HTML build-html]
     ask --> pdf[PDF Chrome]
-    ask --> pandoc[Pandoc DOCX HTML EPUB]
+    ask --> site[site/ Workers]
+    ask --> pandoc[Pandoc DOCX EPUB]
     ask --> wiki[Confluence MCP]
-    ask --> marp[Marp 等]
   end
 ```
 
+- **HTML パイプライン（推奨）:** `operation_manual.md` → `index.html` → `site/manuals/<slug>/`（[templates/build-html.mjs](templates/build-html.mjs)）。
 - **PDF パイプライン（オプション）:** `operation_manual.md` → 一時 HTML → `operation_manual.pdf`（[templates/build-pdf.mjs](templates/build-pdf.mjs)）。
+- **Cloudflare 公開:** `site/` を Workers Static Assets でデプロイ（[reference.md](reference.md) Step H）。
 - **その他:** [reference.md](reference.md) の Pandoc 例・Confluence チェックリストを参照。
 - **複数マニュアル:** 入出力ファイル名を引数で変える、または `package.json` に用途別 `build:*` を定義する（上書き方針は後述）。
 
@@ -186,6 +191,27 @@ flowchart TB
 
 ---
 
+## グローバルインストール
+
+```bash
+git clone https://github.com/rossoandoy/mov-to-doc.git
+cd mov-to-doc
+npm link
+# または: npm install -g github:rossoandoy/mov-to-doc
+
+mov-to-doc skill install   # Cursor Skill を ~/.cursor/skills/ に配置
+mov-to-doc init ./manuals/my-topic
+```
+
+## 2 リポジトリモデル
+
+| リポジトリ | 役割 |
+|-----------|------|
+| **[mov-to-doc](https://github.com/rossoandoy/mov-to-doc)** | ツール本体（CLI、Skill、テンプレート） |
+| **各 manual リポジトリ**（例: [manabie-tomas-mypage-manual](https://github.com/rossoandoy/manabie-tomas-mypage-manual)） | 動画（Git LFS）、Markdown、HTML、公開用 `site/` |
+
+---
+
 ## クイックスタート
 
 1. 作業フォルダ（例: `manual/`）に **[templates/](templates/) の中身をコピー**する。
@@ -196,12 +222,15 @@ flowchart TB
 ```bash
 cd manual
 npm install
-npm run build
+npm run html          # Web HTML
+npm run site          # site/ へ配置（Workers 用）
+npm run build:web     # diagram + html + site
+# PDF が必要な場合: npm run build
 ```
 
-生成物の例: `images/process_flow.png`、`operation_manual.pdf`
+生成物の例: `index.html`、`site/manuals/<slug>/`、`images/process_flow.png`
 
-**複数マニュアル**は `node build-pdf.mjs 別件.md 別件.pdf` や `package.json` の用途別 `npm run build:xxx` で PDF 名を分ける。
+**複数マニュアル**は `node build-html.mjs 別件.md 別件.html` や `npm run build:xxx` でファイル名を分ける。
 
 ---
 

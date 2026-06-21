@@ -4,7 +4,7 @@
 
 **公式リポジトリ:** [https://github.com/rossoandoy/mov-to-doc](https://github.com/rossoandoy/mov-to-doc)
 
-**実運用例（推奨スタック）:** [manabie-tomas-mypage-manual](https://manabie-tomas-mypage-manual.rossoando.workers.dev/) — mov-to-doc の HTML 出力 + Cloudflare Workers（Static Assets + R2 動画）で公開。
+**実運用例（推奨スタック）:** [manabie-tomas-mypage-manual](https://manabie-tomas-mypage-manual.rossoando.workers.dev/)（[GitHub](https://github.com/rossoandoy/manabie-tomas-mypage-manual)）— mov-to-doc の HTML 出力 + Cloudflare Workers（Static Assets + R2 動画）で公開。
 
 ---
 

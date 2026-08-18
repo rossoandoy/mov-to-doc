@@ -224,7 +224,7 @@ cd mov-to-doc
 npm link
 # または: npm install -g github:rossoandoy/mov-to-doc
 
-mov-to-doc skill install   # Cursor Skill を ~/.cursor/skills/ に配置
+mov-to-doc skill install ~/.cursor/skills/mov-to-doc   # 使うエージェントのスキル置き場を指定
 mov-to-doc init ./manuals/my-topic
 ```
 

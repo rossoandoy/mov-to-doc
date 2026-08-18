@@ -93,6 +93,22 @@ description: >-
 
 ## Step C — Markdown（`operation_manual.md`）
 
+### 機能マニュアル（推奨）
+
+**機能単位**で執筆する。横断業務フロー（入会→配置など）は **書かない**。テンプレートは `templates/feature-manual-template.md`。
+
+1. 機能概要  
+2. 画面の開き方  
+3. 前提・権限  
+4. 画面構成（表）  
+5. 操作一覧（表: 参照/作成/更新 等）  
+6. 操作手順（`### 操作名` ごと。連番の業務シナリオではない）  
+7. 項目リファレンス（表）  
+8. 関連機能（業務順序ではないリンク）  
+9. 補足・制約  
+
+### 従来型（業務シナリオ横断マニュアル）
+
 次の **必須構成** で書く（日本語ユーザー向けが一般的）。
 
 1. タイトル  
@@ -140,7 +156,7 @@ description: >-
 
 ## Step E — 出力形式の確認（派生成果物の選択）
 
-**Step C・D まで完了した時点**（マニュアル初稿とフロー図の取り込みが揃ったら）、エージェントは **ユーザーに最終的に欲しい形式**を確認する。Cursor では **AskQuestion** 等で **複数選択可** とする。
+**Step C・D まで完了した時点**（マニュアル初稿とフロー図の取り込みが揃ったら）、エージェントは **ユーザーに最終的に欲しい形式**を確認する。エージェントの質問ツールで **複数選択可** として尋ねる。
 
 ### よく選ばれる順（目安）
 
@@ -176,7 +192,7 @@ PDF が **不要**ならこの Step をスキップする。
    - **既定（1 本だけのマニュアル）**: `npm run build`（`diagram` → `pdf`）または `npm run pdf` のみ → `operation_manual.md` → **`operation_manual.pdf`**。
    - **複数マニュアルがある場合（推奨）**: **`operation_manual.pdf` や他トピックの PDF を誤って上書きしない**よう、次のいずれかを徹底する。
      - **入出力を分ける**: `node build-pdf.mjs <入力.md> <出力.pdf>` で **トピックごとに別名の PDF** を出す。
-     - **`package.json` に用途別スクリプト** を用意し、コマンドからファイル名が一目でわかるようにする（例: `npm run build:withdrawal` → `Manabie_退会.md` → `Manabie_退会.pdf`）。
+     - **`package.json` に用途別スクリプト** を用意し、コマンドからファイル名が一目でわかるようにする（例: `npm run build:withdrawal` → `withdrawal.md` → `withdrawal.pdf`）。
      - **Mermaid も** `diagrams/Topic_flow.mmd`・`images/Topic_flow.png` のように **トピック単位でファイルを分ける**。
 3. **エージェントの判断**: 既存の `*.pdf` を上書きしそうな操作の前に、**ユーザーへ一言確認してよい**（「`operation_manual.pdf` を再生成してよいですか？」「別名 `Topic.pdf` で出しますか？」など）。CI や厳格運用では、テンプレートの `build-pdf.mjs` が **`MANUAL_PDF_STRICT_OVERWRITE=1`** のとき既存 PDF があると中止し、**`--force`** でだけ上書きする動きになっている。
 4. 成果物の PDF パスをユーザーに返す。
@@ -188,32 +204,34 @@ PDF が **不要**ならこの Step をスキップする。
 HTML が **不要**ならこの Step をスキップする。**業務ユーザー向け Web マニュアル**の第一派生として推奨。
 
 1. 作業ディレクトリに `mov-to-doc init` でテンプレートを展開する（または `templates/` をコピー）。
-2. **（任意・推奨）** マニュアルメタ `manual.meta.json` を同じディレクトリに置く。業務フロー概要・UAT 対応・分岐 tip を HTML に反映する。
-3. **（マニュアルリポジトリ全体）** リポジトリルートに `data/business-flow.json`（7 フェーズ）と `data/uat-cases.json`（UAT 一覧）を置く。一覧ページ生成に使用。
+2. **（任意・推奨）** マニュアルメタ `manual.meta.json` を同じディレクトリに置く。機能 ID・操作種別・関連機能・参照動画を HTML に反映する（スキーマは下の例を参照）。
+3. **（マニュアルリポジトリ全体）** リポジトリルートに `data/feature-catalog.json`（モジュール別機能カタログ）を置く。一覧ページ生成に使用。
 4. `npm install` のあと HTML を生成する。
    - **CLI（グローバル）**: `mov-to-doc build html operation_manual.md index.html`
    - **作業ディレクトリ内**: `npm run html` → `operation_manual.md` → **`index.html`**
    - **別名**: `node build-html.mjs <入力.md> <出力.html>`
 5. 生成 HTML の特徴:
-   - **詳細ページ**: レスポンシブ、目次サイドバー、**業務フロー概要ストリップ**（`flowSummary`）、**参照動画**（`referenceVideo`）、**分岐 tip**（Email 未入力時等）、**UAT バッジ**（手順・サイドバー）、手順カード、画像クリック拡大、Noto Sans JP、Manabie 系アクセントカラー（`#2954c2`）。
-   - **一覧ページ**（`prepare-site.mjs`）: 7 フェーズの業務フローストリップ、フェーズフィルタ、マニュアルカード（UAT チップ付き）、UAT 早見表（折りたたみ）。
-6. **`site/` へ反映**（Workers 公開前）: `npm run site` または `mov-to-doc build site [manual-dir] [site-dir] [slug]` — `data/` も `site/data/` にコピーされ、**一覧 `site/index.html` を自動再生成**する。
+   - **詳細ページ**: レスポンシブ、パンくず（機能マニュアル > モジュール > 機能名）、目次サイドバー、`menuPath`・`objectApiName`・操作種別タグ、**参照動画**（`referenceVideo`）、**関連機能**リンク、操作手順カード（`###` 単位）、画像クリック拡大、Noto Sans JP、アクセントカラー（`#2954c2`）。
+   - **一覧ページ**（`prepare-site.mjs`）: モジュール別サイドナビ + 機能カード（`menuPath`・`summary`・操作種別）。
+6. **`site/` へ反映**（Workers 公開前）: `npm run site` または `mov-to-doc build site [manual-dir] [site-dir] [slug]` — `data/feature-catalog.json` を `site/data/` にコピーし、**一覧 `site/index.html` を自動再生成**する。
 7. 上書きポリシー: 環境変数 **`MANUAL_HTML_STRICT_OVERWRITE=1`** で既存 HTML 上書きを禁止。`--force` で上書き。
 
-### `manual.meta.json` の例
+### `manual.meta.json` の例（機能マニュアル）
 
 ```json
 {
-  "slug": "mypage-20260618",
-  "flowPhases": ["enrollment", "contract", "timetable"],
-  "flowRange": { "from": "面談カルテ入力", "to": "授業カレンダー配置" },
-  "flowSummary": ["面談カルテ入力（タブレット）", "…"],
-  "branchTips": [{ "afterStep": 8, "title": "Email が未入力の場合", "body": "ステップ9〜10を実施してから…" }],
-  "uatMapping": [{ "step": 1, "ids": ["EKT-01"], "note": "カルテ作成" }],
+  "slug": "feat-opportunity-list",
+  "title": "商談一覧",
+  "featureId": "opportunity-list",
+  "moduleId": "sales",
+  "menuPath": "アプリランチャー > 営業 > 商談",
+  "environment": "Sandbox",
+  "operations": ["view", "create"],
+  "relatedFeatures": ["account-detail"],
   "referenceVideo": {
-    "url": "/videos/mypage-20260618.mp4",
-    "title": "操作録画（面談カルテ〜授業配置）",
-    "duration": "8:33"
+    "url": "/videos/opportunity-list-20260701.mp4",
+    "title": "操作録画（商談一覧）",
+    "duration": "2:33"
   }
 }
 ```
@@ -222,9 +240,9 @@ HTML が **不要**ならこの Step をスキップする。**業務ユーザ�
 
 ## Step H — Cloudflare Workers へのデプロイ
 
-HTML + `images/` を **インターネット公開**する場合（例: [manabie-tomas-mypage-manual](https://github.com/rossoandoy/manabie-tomas-mypage-manual)）。
+HTML + `images/` を **インターネット公開**する場合。
 
-**mov-to-doc + Cloudflare** は、画面録画マニュアルを現場へ届ける **推奨構成** である。Markdown 正本のまま、レスポンシブ HTML・業務フロー一覧・UAT 対応・参照動画を **1 URL** で提供でき、UAT 規模なら **追加インフラ費用はほぼ不要**（Workers Static Assets + R2 無料枠）。
+**mov-to-doc + Cloudflare** は、画面録画マニュアルを現場へ届ける **推奨構成** である。Markdown 正本のまま、レスポンシブ HTML・機能一覧・用語集・参照動画を **1 URL** で提供でき、小規模なら **追加インフラ費用はほぼ不要**（Workers Static Assets + R2 無料枠）。
 
 1. マニュアルリポジトリに `wrangler.jsonc` を置き、`assets.directory` を `./site` に設定する（[reference.md](reference.md) 参照）。**大容量参照動画**は R2 + `worker.mjs` で `/videos/*` 配信。
 2. Step G で `site/manuals/<slug>/` に HTML と images を配置済みであること。
@@ -248,11 +266,11 @@ HTML + `images/` を **インターネット公開**する場合（例: [manabie
 | リポジトリ | 役割 |
 |-----------|------|
 | **mov-to-doc** | ツール本体（CLI、Skill、テンプレート） |
-| **各 manual リポジトリ**（例: manabie-tomas-mypage-manual） | 動画（Git LFS）、Markdown、HTML、公開用 `site/` |
+| **各 manual リポジトリ**（案件ごとに 1 つ） | 動画（Git LFS）、Markdown、HTML、公開用 `site/` |
 
 ### 他の AI / エディタでも使えるか
 
-この `SKILL.md` は **Markdown の手順書**である。**Cursor の Agent Skill** として置けるほか、**Claude Code の Skill**、**自作のプロジェクトルール**、またはチャットに **ファイルを貼り付け／リポジトリを参照**させる形でも、内容に従って同じパイプラインを実行できる。必須は **ffmpeg・Node**（PDF 派生時は **Chrome**）が利用可能な環境と、エージェントがシェルコマンドを実行できることである（ツール名は製品ごとに異なる）。
+この `SKILL.md` は **Markdown の手順書**である。各エージェント製品の **Skill / ルールファイル** として置けるほか、チャットに **ファイルを貼り付け／リポジトリを参照**させる形でも、内容に従って同じパイプラインを実行できる。必須は **ffmpeg・Node**（PDF 派生時は **Chrome**）が利用可能な環境と、エージェントがシェルコマンドを実行できることである（ツール名は製品ごとに異なる）。
 
 ## クリーンアップ
 
@@ -289,7 +307,7 @@ HTML + `images/` を **インターネット公開**する場合（例: [manabie
 | [templates/build-html.mjs](templates/build-html.mjs) | `operation_manual.md` → Web HTML |
 | [templates/prepare-site.mjs](templates/prepare-site.mjs) | `site/` への配置（Workers Static Assets 用）・一覧再生成 |
 | [templates/lib/render-manual.mjs](templates/lib/render-manual.mjs) | Markdown → HTML（Web / 印刷共通・UAT・フロー概要） |
-| [templates/lib/render-site-index.mjs](templates/lib/render-site-index.mjs) | 業務フロー起点の一覧ページ HTML |
+| [templates/lib/render-site-index.mjs](templates/lib/render-site-index.mjs) | 機能カタログ起点の一覧ページ HTML |
 | [templates/build-pdf.mjs](templates/build-pdf.mjs) | `operation_manual.md` → PDF |
 | [templates/diagrams/process_flow.mmd](templates/diagrams/process_flow.mmd) | フロー図のひな型 |
 | [reference.md](reference.md) | ffmpeg 例・派生出力の詳細・Cloudflare デプロイ |

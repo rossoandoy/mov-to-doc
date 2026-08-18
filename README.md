@@ -4,7 +4,7 @@
 
 **公式リポジトリ:** [https://github.com/rossoandoy/mov-to-doc](https://github.com/rossoandoy/mov-to-doc)
 
-**実運用例（推奨スタック）:** [manabie-tomas-mypage-manual](https://manabie-tomas-mypage-manual.rossoando.workers.dev/)（[GitHub](https://github.com/rossoandoy/manabie-tomas-mypage-manual)）— mov-to-doc の HTML 出力 + Cloudflare Workers（Static Assets + R2 動画）で公開。
+**推奨スタック:** mov-to-doc の HTML 出力 + Cloudflare Workers（Static Assets + R2 動画）で公開する。
 
 ---
 
@@ -115,7 +115,7 @@ flowchart TB
 ```
 
 - **HTML パイプライン（推奨）:** `operation_manual.md` → `index.html` → `site/manuals/<slug>/`（[templates/build-html.mjs](templates/build-html.mjs)）。
-- **Cloudflare 公開（推奨）:** `site/` を Workers Static Assets、参照動画を R2 で配信（Step G + H）。実例: [manabie-tomas-mypage-manual](https://manabie-tomas-mypage-manual.rossoando.workers.dev/)。
+- **Cloudflare 公開（推奨）:** `site/` を Workers Static Assets、参照動画を R2 で配信（Step G + H）。詳細は [SKILL.md](SKILL.md) Step H。
 - **PDF パイプライン（オプション）:** `operation_manual.md` → 一時 HTML → `operation_manual.pdf`（[templates/build-pdf.mjs](templates/build-pdf.mjs)）。
 - **その他:** [reference.md](reference.md) の Pandoc 例・Confluence チェックリストを参照。
 - **複数マニュアル:** 入出力ファイル名を引数で変える、または `package.json` に用途別 `build:*` を定義する（上書き方針は後述）。
@@ -210,7 +210,7 @@ flowchart TB
 
 ## PDF の上書き方針（重要）
 
-- **別トピック**では `Manabie_退会.md` → `Manabie_退会.pdf` のように **ファイル名を分ける**。
+- **別トピック**では `withdrawal.md` → `withdrawal.pdf` のように **ファイル名を分ける**。
 - **エージェント:** 既存の共有 PDF を上書きしそうなときは **ユーザーに確認してから**実行してよい。
 - **`build-pdf.mjs`:** 既定では既存 PDF があると **警告してから上書き**。厳格に止めたいときは **`MANUAL_PDF_STRICT_OVERWRITE=1`**、上書き時は **`--force`**。詳細は [SKILL.md](SKILL.md) Step E と [reference.md](reference.md)。
 
@@ -233,7 +233,7 @@ mov-to-doc init ./manuals/my-topic
 | リポジトリ | 役割 |
 |-----------|------|
 | **[mov-to-doc](https://github.com/rossoandoy/mov-to-doc)** | ツール本体（CLI、Skill、テンプレート） |
-| **各 manual リポジトリ**（例: [manabie-tomas-mypage-manual](https://github.com/rossoandoy/manabie-tomas-mypage-manual)） | 動画（Git LFS）、Markdown、HTML、公開用 `site/` |
+| **各 manual リポジトリ**（案件ごとに 1 つ） | 動画（Git LFS）、Markdown、HTML、公開用 `site/` |
 
 ---
 

@@ -63,11 +63,12 @@ let html = readFileSync(join(destDir, "index.html"), "utf8");
 html = html.replace(/\.\/images\//g, "images/");
 writeFileSync(join(destDir, "index.html"), html, "utf8");
 
-// Copy data/ to site/data/
-const dataSrc = join(repoRoot, "data");
+// feature-catalog.json のみ site/data/ に配置
+const catalogSrc = join(repoRoot, "data", "feature-catalog.json");
 const dataDest = join(siteDir, "data");
-if (existsSync(dataSrc)) {
-  cpSync(dataSrc, dataDest, { recursive: true });
+mkdirSync(dataDest, { recursive: true });
+if (existsSync(catalogSrc)) {
+  copyFileSync(catalogSrc, join(dataDest, "feature-catalog.json"));
 }
 
 regenerateSiteIndex(siteDir, repoRoot);

@@ -235,25 +235,22 @@ npm run site
 
 ## Cloudflare Workers デプロイ（推奨スタック）
 
-**mov-to-doc の HTML 出力 + Cloudflare Workers** は、画面録画マニュアルを業務ユーザーに届ける **第一選択肢**。実運用例:
-
-- 公開 URL: https://manabie-tomas-mypage-manual.rossoando.workers.dev/
-- リポジトリ: [manabie-tomas-mypage-manual](https://github.com/rossoandoy/manabie-tomas-mypage-manual)
+**mov-to-doc の HTML 出力 + Cloudflare Workers** は、画面録画マニュアルを業務ユーザーに届ける **第一選択肢**。
 
 | 構成要素 | 役割 |
 |----------|------|
 | `build-html.mjs` + `render-manual.mjs` | 目次・手順カード・UAT・参照動画埋込 |
 | `site/` Static Assets | HTML + キャプチャ（25MB/ファイル上限） |
 | R2 + `worker.mjs` | 大容量参照動画（`/videos/*`） |
-| `manual.meta.json` | 業務フロー・UAT・`referenceVideo` |
+| `manual.meta.json` | 機能メタ（`menuPath`・操作種別・`referenceVideo`） |
 
-マニュアルホスティング用リポジトリ（例: `manabie-tomas-mypage-manual`）で:
+マニュアルホスティング用リポジトリで:
 
 ```jsonc
 // wrangler.jsonc（Static Assets + R2 動画）
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "manabie-tomas-mypage-manual",
+  "name": "<manual-repo-name>",
   "main": "worker.mjs",
   "compatibility_date": "2026-06-01",
   "assets": {
@@ -263,7 +260,7 @@ npm run site
     "not_found_handling": "404-page"
   },
   "r2_buckets": [
-    { "binding": "VIDEOS", "bucket_name": "manabie-tomas-mypage-manual-videos" }
+    { "binding": "VIDEOS", "bucket_name": "<manual-repo-name>-videos" }
   ]
 }
 ```

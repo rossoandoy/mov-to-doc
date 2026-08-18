@@ -1,8 +1,8 @@
 /**
- * Markdown + ./images → Web HTML（業務ユーザー向け）
+ * Markdown + ./images → Web HTML（機能マニュアル）
  */
 import { readFileSync, writeFileSync, existsSync } from "fs";
-import { dirname, join, resolve } from "path";
+import { basename, dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
 import { renderManualHtml } from "./lib/render-manual.mjs";
 
@@ -36,19 +36,10 @@ if (existsSync(metaPath)) {
   meta = JSON.parse(readFileSync(metaPath, "utf8"));
 }
 
-const PHASE_LABELS = {
-  master: "マスタ・初期設定",
-  enrollment: "入会・面談",
-  contract: "契約・受講枠",
-  timetable: "時間割・コマ組",
-  teacher: "講師管理",
-  reschedule: "振替・キャンセル",
-  closing: "校舎締め",
-};
-if (meta?.flowPhases) {
-  meta.flowPhaseLabels = meta.flowPhases.map((id) => PHASE_LABELS[id] ?? id);
-}
+const repoRoot = basename(dirname(manualDir)) === "manuals"
+  ? dirname(dirname(manualDir))
+  : dirname(manualDir);
 
-const html = await renderManualHtml(md, { mode: "web", meta, siteRoot: "../../" });
+const html = await renderManualHtml(md, { mode: "web", meta, siteRoot: "../../", repoRoot });
 writeFileSync(htmlPath, html, "utf8");
 console.log("HTML を出力しました:", htmlPath);

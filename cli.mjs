@@ -5,7 +5,6 @@
 import { cpSync, existsSync, mkdirSync, copyFileSync } from "fs";
 import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
-import { homedir } from "os";
 import { spawnSync } from "child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -18,7 +17,8 @@ function usage() {
 
 Usage:
   mov-to-doc init [dir]              作業ディレクトリに templates/ を展開
-  mov-to-doc skill install           SKILL.md を ~/.cursor/skills/mov-to-doc/ へ配置
+  mov-to-doc skill install [dir]     SKILL.md をエージェントのスキル置き場へ配置
+                                     （dir 省略時は $AGENT_SKILLS_DIR、無ければ ./mov-to-doc）
   mov-to-doc build html [md] [out]   Markdown → Web HTML
   mov-to-doc build pdf [md] [out]    Markdown → PDF（Chrome 必須）
   mov-to-doc build site [dir] [site] [slug]  HTML+images を site/ へ配置
@@ -74,8 +74,10 @@ function cmdInit() {
   console.log("次: cd", target, "&& npm install");
 }
 
-function cmdSkillInstall() {
-  const dst = join(homedir(), ".cursor", "skills", "mov-to-doc");
+function cmdSkillInstall(dirArg) {
+  // 配置先はエージェント製品ごとに違うので、引数 > 環境変数 > カレント配下 の順で決める
+  const base = dirArg || process.env.AGENT_SKILLS_DIR || process.cwd();
+  const dst = dirArg ? resolve(dirArg) : join(resolve(base), "mov-to-doc");
   mkdirSync(dst, { recursive: true });
   for (const name of ["SKILL.md", "reference.md"]) {
     copyFileSync(join(__dirname, name), join(dst, name));
@@ -108,7 +110,7 @@ switch (command) {
     cmdInit();
     break;
   case "skill":
-    if (rest[0] === "install") cmdSkillInstall();
+    if (rest[0] === "install") cmdSkillInstall(rest[1]);
     else {
       console.error("Unknown skill command:", rest[0]);
       process.exit(1);
